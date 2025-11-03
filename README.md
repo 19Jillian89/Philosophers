@@ -32,3 +32,9 @@ This classic problem simulates a group of philosophers eating, thinking, and sle
 📅 **Repository will be updated as development progresses!**
 
 ---
+
+## 📄 License
+
+This project is for educational purposes only and is part of the 42 Common Core curriculum. [42 Common Core curriculum](https://www.42network.org/),
+
+---
