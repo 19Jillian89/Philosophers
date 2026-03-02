@@ -6,70 +6,60 @@
 /*   By: ilnassi <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/31 15:18:08 by ilnassi           #+#    #+#             */
-/*   Updated: 2026/02/03 02:10:02 by ilnassi          ###   ########.fr       */
+/*   Updated: 2026/02/16 17:14:43 by ilnassi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosopher.h"
 
+/*It stays inactive for the specified number of milliseconds, keeping 
+the simulation responsive. 
+It wakes up periodically to check if the simulation is still running, 
+allowing for early exit when the monitor interrupts the program.*/
+static void	smart_sleep(long long ms, t_philo *philo)
+{
+	long long	start;
+
+	start = get_time();
+	while (get_time() - start < ms)
+	{
+		if (!sim_is_running(philo->data))
+			return ;
+		usleep(200);
+	}
+}
+
+/*Prints the "thinking" state if the simulation is still running.
+This function does not block and is used to model the philosopher cycle.*/
 void	think(t_philo *philo)
 {
-	int	plan;
-
-	pthread_mutex_lock(&philo->data->sim_mutex);
-	plan = philo->data->sim_running;
-    pthread_mutex_unlock(&philo->data->sim_mutex);
-	if (!plan)
+	if (!sim_is_running(philo->data))
 		return ;
-    print_plan(philo, "is thinking");
+	print_plan(philo, "is thinking");
 }
 
-void    eat(t_philo *philo)
+/*Updates the philosopher's last_meal timestamp (protected by a mutex),
+prints the "eating" state, increments the meals 
+counter (protected by a mutex), and then sleeps for time_to_eat 
+using smart_sleep.*/
+void	eat(t_philo *philo)
 {
-    int gnam;
-
-    pthread_mutex_lock(&philo->data->sim_mutex);
-    gnam = philo->data->sim_running;
-    pthread_mutex_unlock(&philo->data->sim_mutex);
-    if (!gnam)
-        return ;
-    pthread_mutex_lock(&philo->gnammy_mutex);
-    print_plan(philo, "is eating");
-    philo->food_eaten++;
-    pthread_mutex_unlock(&philo->gnammy_mutex);
-    pthread_mutex_lock(&philo->time_gnammy_mutex);
-    philo->last_food_time = get_time();
-    pthread_mutex_unlock(&philo->time_gnammy_mutex);
-    usleep(philo->data->time_to_eat * 1000);
+	pthread_mutex_lock(&philo->time_gnammy_mutex);
+	philo->last_food_time = get_time();
+	pthread_mutex_unlock(&philo->time_gnammy_mutex);
+	print_plan(philo, "is eating");
+	pthread_mutex_lock(&philo->gnammy_mutex);
+	philo->food_eaten++;
+	pthread_mutex_unlock(&philo->gnammy_mutex);
+	smart_sleep(philo->data->time_to_eat, philo);
 }
 
-static void	sleep_step(long long end)
-{
-	long long	now;
-	long long	remain;
-
-	now = get_time();
-	if (now >= end)
-		return ;
-	remain = end - now;
-	if (remain > 10)
-		usleep(10 * 1000);
-	else
-		usleep(remain * 1000);
-}
-
+/*Prints the "sleeping" state if the simulation is still running,
+then sleeps for time_to_sleep using smart_sleep.*/
 void	sleep_philo(t_philo *philo)
 {
-	long long	end;
-
 	if (!sim_is_running(philo->data))
-    	return;
+		return ;
 	print_plan(philo, "is sleeping");
-	end = get_time() + philo->data->time_to_sleep;
-	while (get_time() < end)
-	{
-		if (check_death(philo))
-			return ;
-		sleep_step(end);
-	}
+	smart_sleep(philo->data->time_to_sleep, philo);
 }
