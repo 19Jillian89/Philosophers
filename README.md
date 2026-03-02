@@ -1,8 +1,7 @@
 # Philosophers
 
 ![Language](https://img.shields.io/badge/language-C-blue)
-![Status](https://img.shields.io/badge/status-in%20progress-yellow)
-![42](https://img.shields.io/badge/42-Common%20Core-black)
+![Score](https://img.shields.io/badge/score-100%2F100-brightgreen)  ![Status](https://img.shields.io/badge/status-complete-success) ![42](https://img.shields.io/badge/42-Common%20Core-black)
 
 ---
 
